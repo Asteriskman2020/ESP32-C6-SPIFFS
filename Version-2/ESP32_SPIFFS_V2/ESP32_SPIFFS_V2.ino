@@ -682,7 +682,7 @@ void setupBLE() {
 
   NimBLEAdvertising* pAdv = NimBLEDevice::getAdvertising();
   pAdv->addServiceUUID(SERVICE_UUID);
-  pAdv->setScanResponse(true);
+  pAdv->enableScanResponse(true);
   NimBLEDevice::startAdvertising();
   Serial.println("BLE advertising started");
 }
