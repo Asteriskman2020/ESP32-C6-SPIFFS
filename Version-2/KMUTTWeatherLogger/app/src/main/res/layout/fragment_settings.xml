@@ -117,7 +117,7 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:hint="Password"
                         app:boxStrokeColor="#0288D1"
-                        app:passwordToggleEnabled="true">
+                        app:endIconMode="password_toggle">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etDbPass"

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.kmutt.weatherlogger">
 
     <!-- Legacy BLE (API < 31) -->
@@ -11,12 +12,10 @@
     <!-- BLE permissions (API 31+) -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"
         android:usesPermissionFlags="neverForLocation"
-        tools:targetApi="s"
-        xmlns:tools="http://schemas.android.com/tools"/>
+        tools:targetApi="s"/>
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"
-        tools:targetApi="s"
-        xmlns:tools="http://schemas.android.com/tools"/>
+        tools:targetApi="s"/>
 
     <!-- Location (required for BLE scanning on older APIs) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
