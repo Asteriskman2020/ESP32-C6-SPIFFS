@@ -1,0 +1,30 @@
+name: Build APK
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build APK
+        working-directory: Version-1/AndroidApp
+        run: chmod +x gradlew && ./gradlew assembleDebug
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spiffs-logger-apk
+          path: Version-1/AndroidApp/app/build/outputs/apk/debug/app-debug.apk
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0-${{ github.sha }}
+          name: SPIFFS Logger v1.0-${{ github.sha }}
+          files: Version-1/AndroidApp/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

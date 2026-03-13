@@ -1,0 +1,14 @@
+# Android build outputs
+Version-1/AndroidApp/.gradle/
+Version-1/AndroidApp/app/build/
+Version-1/AndroidApp/build/
+Version-1/AndroidApp/local.properties
+Version-1/AndroidApp/.idea/
+
+# Arduino build
+Version-1/ESP32_SPIFFS_Logger/.pio/
+Version-1/ESP32_SPIFFS_Logger/build/
+
+# OS files
+.DS_Store
+Thumbs.db
