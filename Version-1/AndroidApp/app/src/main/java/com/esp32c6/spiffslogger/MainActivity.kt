@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
             setBackgroundColor(orange)
             title = "SPIFFS Logger"
             setTitleTextColor(Color.WHITE)
-            id = generateViewId()
+            id = android.view.View.generateViewId()
         }
         setSupportActionBar(toolbar)
 
