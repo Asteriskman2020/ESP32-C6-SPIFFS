@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KMUTT Weather Data Logger</string>
+    <string name="tab_files">FILES</string>
+    <string name="tab_status">STATUS</string>
+    <string name="tab_settings">SETTINGS</string>
+    <string name="ble_connection">BLE CONNECTION</string>
+    <string name="not_connected">Not connected</string>
+    <string name="scan">SCAN</string>
+    <string name="disconnect">DISCONNECT</string>
+    <string name="refresh_files">REFRESH FILES</string>
+    <string name="esp32_files">ESP32 FILES</string>
+    <string name="downloaded_data">DOWNLOADED DATA</string>
+    <string name="device_status">DEVICE STATUS</string>
+    <string name="storage_status">STORAGE STATUS</string>
+    <string name="database_status">DATABASE STATUS</string>
+    <string name="database_config">DATABASE CONFIGURATION</string>
+    <string name="app_info">APP INFO</string>
+    <string name="save_settings">SAVE SETTINGS</string>
+    <string name="test_connection">TEST CONNECTION</string>
+</resources>

@@ -1,0 +1,36 @@
+name: Build KMUTT Weather Logger APK
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'Version-2/KMUTTWeatherLogger/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build APK
+        working-directory: Version-2/KMUTTWeatherLogger
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: kmutt-v1.0-${{ github.sha }}
+          name: KMUTT Weather Logger v1.0-${{ github.sha }}
+          files: Version-2/KMUTTWeatherLogger/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
