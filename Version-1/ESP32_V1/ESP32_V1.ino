@@ -325,11 +325,16 @@ void updateLed() {
     int fileCount = (int)listCsvFiles().size();
 
     if (recordingDone || fileCount >= MAX_FILES) {
-        // Slow RED → GREEN → PURPLE cycle, 600 ms per colour
-        uint8_t phase = (now / 600) % 3;
-        if      (phase == 0) setPixelColor(255, 0,   0);    // RED
-        else if (phase == 1) setPixelColor(0,   255, 0);    // GREEN
-        else                 setPixelColor(128, 0,   255);  // PURPLE
+        // Smooth colour fade: RED → GREEN → PURPLE → RED (1 s per transition)
+        const uint8_t COLS[3][3] = {{255,0,0},{0,255,0},{128,0,255}};
+        uint32_t t   = now % 3000;          // 3-second full cycle
+        uint8_t  seg = t / 1000;            // which transition (0,1,2)
+        float    frc = (t % 1000) / 1000.0f;
+        uint8_t  nxt = (seg + 1) % 3;
+        uint8_t  r   = (uint8_t)(COLS[seg][0] + frc * (int(COLS[nxt][0]) - COLS[seg][0]));
+        uint8_t  g   = (uint8_t)(COLS[seg][1] + frc * (int(COLS[nxt][1]) - COLS[seg][1]));
+        uint8_t  b   = (uint8_t)(COLS[seg][2] + frc * (int(COLS[nxt][2]) - COLS[seg][2]));
+        setPixelColor(r, g, b);
 
     } else if (fileCount == 0) {
         // Rapid RED flash
