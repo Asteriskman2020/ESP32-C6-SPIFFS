@@ -67,8 +67,7 @@ String curFile  = "";
 unsigned long lastSensorMs  = 0;
 unsigned long ledFlashMs    = 0;
 bool          ledState      = false;
-bool          blueSolidMode = false;
-unsigned long blueSolidStart = 0;
+bool          recordingDone = false;   // true after all 5 files saved
 
 // ─── BLE command queue ───────────────────────────────────────────────────────
 String pendingBleCmd = "";
@@ -217,12 +216,6 @@ void deleteOldestFile() {
 }
 
 void createNewFile() {
-    // Enforce max 5 files
-    auto files = listCsvFiles();
-    while ((int)files.size() >= MAX_FILES) {
-        deleteOldestFile();
-        files = listCsvFiles();
-    }
     curFile = getFilenameDateTime();
     String path = "/" + curFile;
     File f = SPIFFS.open(path, FILE_WRITE);
@@ -278,31 +271,39 @@ int countRecordsInFile(const String& filename) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  LED update (non-blocking)
+//  0 files         → rapid RED flash  (100 ms)
+//  1-4 files       → rapid PURPLE flash (100 ms)
+//  5 files (done)  → slow RED→GREEN→PURPLE cycle (600 ms each)
 // ─────────────────────────────────────────────────────────────────────────────
 void updateLed() {
-    if (blueSolidMode) {
-        // Blue solid for 5 seconds
-        setPixelColor(0, 0, 255);
-        if (millis() - blueSolidStart >= 5000) {
-            blueSolidMode = false;
-            ledOff();
-        }
-        return;
-    }
-    if (!fsReady || !ntpSynced) {
-        ledOff();
-        return;
-    }
-    // Fast flash based on current slot
+    if (!fsReady) { ledOff(); return; }
+
+    int fileCount = (int)listCsvFiles().size();
     unsigned long now = millis();
-    if (now - ledFlashMs >= 100) {
-        ledFlashMs = now;
-        ledState = !ledState;
-        if (ledState) {
-            RGBColor c = slotColor(slotIdx);
-            setPixelColor(c.r, c.g, c.b);
-        } else {
-            ledOff();
+
+    if (recordingDone || fileCount >= MAX_FILES) {
+        // Slow RED → GREEN → PURPLE cycle, 600 ms per colour
+        uint8_t phase = (now / 600) % 3;
+        if      (phase == 0) setPixelColor(255, 0,   0);    // RED
+        else if (phase == 1) setPixelColor(0,   255, 0);    // GREEN
+        else                 setPixelColor(128, 0,   255);  // PURPLE
+
+    } else if (fileCount == 0) {
+        // Rapid RED flash
+        if (now - ledFlashMs >= 100) {
+            ledFlashMs = now;
+            ledState = !ledState;
+            if (ledState) setPixelColor(255, 0, 0);
+            else          ledOff();
+        }
+
+    } else {
+        // Rapid PURPLE flash  (1–4 files in SPIFFS)
+        if (now - ledFlashMs >= 100) {
+            ledFlashMs = now;
+            ledState = !ledState;
+            if (ledState) setPixelColor(128, 0, 255);
+            else          ledOff();
         }
     }
 }
@@ -389,19 +390,22 @@ void processBleCommand(const String& cmd) {
         String resp = ok ? ("CLEARED:" + fname) : ("ERROR:" + fname);
         pStatChar->setValue(resp.c_str());
         pStatChar->notify();
-        // If we deleted current file, reset
-        if (fname == curFile) {
-            curFile = "";
-            recCnt = 0;
-            saveNvs();
+        // If we deleted current file, reset; clearing any file re-enables recording
+        if (fname == curFile) { curFile = ""; recCnt = 0; }
+        // After deletion, file count drops below 5 so allow recording again
+        if ((int)listCsvFiles().size() < MAX_FILES) {
+            recordingDone = false;
+            if (slotIdx >= MAX_FILES) slotIdx = (int)listCsvFiles().size();
         }
+        saveNvs();
     }
     else if (cmd == "CLEARALL") {
         auto files = listCsvFiles();
         for (auto& f : files) SPIFFS.remove("/" + f);
-        curFile = "";
-        recCnt  = 0;
-        slotIdx = 0;
+        curFile       = "";
+        recCnt        = 0;
+        slotIdx       = 0;
+        recordingDone = false;
         saveNvs();
         pStatChar->setValue("CLEARED:ALL");
         pStatChar->notify();
@@ -768,8 +772,8 @@ void loop() {
         g_pressure = bmp.readPressure() / 100.0f;
         g_tempBmp  = bmp.readTemperature();
 
-        // Write to SPIFFS if ready
-        if (fsReady && ntpSynced) {
+        // Write to SPIFFS if ready and recording not yet complete
+        if (fsReady && ntpSynced && !recordingDone) {
             if (curFile.length() == 0) {
                 createNewFile();
             }
@@ -780,15 +784,16 @@ void loop() {
                 recCnt = 0;
                 slotIdx++;
                 if (slotIdx >= MAX_FILES) {
-                    // All 5 files full: blue LED 5 sec, reset slot
-                    blueSolidMode  = true;
-                    blueSolidStart = millis();
-                    slotIdx = 0;
-                    Serial.println("All slots full - cycling");
+                    // All 5 files saved — stop recording
+                    recordingDone = true;
+                    curFile = "";
+                    saveNvs();
+                    Serial.println("All 5 files saved - recording stopped");
+                } else {
+                    curFile = "";
+                    saveNvs();
+                    // New file created on next iteration when curFile == ""
                 }
-                curFile = "";
-                saveNvs();
-                // New file created on next iteration when curFile == ""
             }
         } else if (wifiConnected && !ntpSynced) {
             // Try NTP sync again
