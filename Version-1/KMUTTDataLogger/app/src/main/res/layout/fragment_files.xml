@@ -135,15 +135,35 @@
                     android:textStyle="bold"
                     android:textSize="13sp"/>
 
-                <Button
-                    android:id="@+id/btnRefresh"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:layout_margin="12dp"
-                    android:backgroundTint="#039BE5"
-                    android:text="REFRESH FILES"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"/>
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <Button
+                        android:id="@+id/btnRefresh"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:backgroundTint="#039BE5"
+                        android:text="REFRESH"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"/>
+
+                    <Button
+                        android:id="@+id/btnDownloadAll"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="#2E7D32"
+                        android:text="DOWNLOAD FILES"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:enabled="false"/>
+
+                </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvFiles"

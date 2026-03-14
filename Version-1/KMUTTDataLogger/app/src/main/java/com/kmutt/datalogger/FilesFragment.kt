@@ -24,8 +24,14 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
     private lateinit var btnDisconnect: Button
 
     // Files card
-    private lateinit var btnRefresh: Button
-    private lateinit var rvFiles:    RecyclerView
+    private lateinit var btnRefresh:     Button
+    private lateinit var btnDownloadAll: Button
+    private lateinit var rvFiles:        RecyclerView
+
+    // Download-all queue
+    private val downloadQueue = mutableListOf<String>()
+    private var downloadQueueIndex = 0
+    private var isDownloadingAll = false
 
     // Data preview card
     private lateinit var tvRecordCount: TextView
@@ -63,6 +69,7 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
         btnScan         = view.findViewById(R.id.btnScan)
         btnDisconnect   = view.findViewById(R.id.btnDisconnect)
         btnRefresh      = view.findViewById(R.id.btnRefresh)
+        btnDownloadAll  = view.findViewById(R.id.btnDownloadAll)
         rvFiles         = view.findViewById(R.id.rvFiles)
         tvRecordCount   = view.findViewById(R.id.tvRecordCount)
         rvRecords       = view.findViewById(R.id.rvRecords)
@@ -98,11 +105,15 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
                 showToast("Not connected")
             }
         }
+        btnDownloadAll.setOnClickListener {
+            downloadAllFiles()
+        }
         btnUpload.setOnClickListener {
             uploadCurrentData()
         }
 
         btnUpload.isEnabled = false
+        btnDownloadAll.isEnabled = false
         updateConnectionUi(false, "", "Not connected")
     }
 
@@ -111,6 +122,43 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
         currentCsvContent = ""
         bleManager.requestFile(fi.name)
         showToast("Downloading ${fi.name}...")
+    }
+
+    private fun downloadAllFiles() {
+        val files = fileAdapter.getItems()
+        if (files.isEmpty()) { showToast("No files to download"); return }
+        if (!isConnected) { showToast("Not connected"); return }
+        downloadQueue.clear()
+        downloadQueue.addAll(files.map { it.name })
+        downloadQueueIndex = 0
+        isDownloadingAll = true
+        btnDownloadAll.isEnabled = false
+        downloadNextInQueue()
+    }
+
+    private fun downloadNextInQueue() {
+        if (downloadQueueIndex >= downloadQueue.size) {
+            isDownloadingAll = false
+            btnDownloadAll.isEnabled = true
+            val dir = requireContext().getExternalFilesDir(null)
+            showToast("All files saved to:\n${dir?.absolutePath}")
+            return
+        }
+        val filename = downloadQueue[downloadQueueIndex]
+        showToast("Downloading $filename (${downloadQueueIndex + 1}/${downloadQueue.size})...")
+        currentFilename = filename
+        currentCsvContent = ""
+        bleManager.requestFile(filename)
+    }
+
+    private fun saveFileToPhone(filename: String, content: String) {
+        try {
+            val dir = requireContext().getExternalFilesDir(null) ?: return
+            dir.mkdirs()
+            java.io.File(dir, filename).writeText(content)
+        } catch (e: Exception) {
+            showToast("Save failed: ${e.message}")
+        }
     }
 
     private fun uploadCurrentData() {
@@ -194,6 +242,7 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
         tvDeviceName.text = if (connected) name else ""
         tvStatusText.text = status
         btnDisconnect.isEnabled = connected
+        if (!connected) btnDownloadAll.isEnabled = false
     }
 
     // ── BleCallback ─────────────────────────────────────────────────────────
@@ -222,6 +271,7 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
     override fun onFileList(files: List<FileInfo>) {
         requireActivity().runOnUiThread {
             fileAdapter.submitList(files)
+            btnDownloadAll.isEnabled = files.isNotEmpty()
             showToast("Found ${files.size} file(s)")
         }
     }
@@ -234,7 +284,13 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
             recordAdapter.submitList(records)
             tvRecordCount.text = "Records: ${records.size}"
             btnUpload.isEnabled = records.isNotEmpty()
-            showToast("Loaded ${records.size} records from $filename")
+            if (isDownloadingAll) {
+                saveFileToPhone(filename, csvContent)
+                downloadQueueIndex++
+                downloadNextInQueue()
+            } else {
+                showToast("Loaded ${records.size} records from $filename")
+            }
         }
     }
 
@@ -286,6 +342,8 @@ class FileAdapter(
         items.addAll(list)
         notifyDataSetChanged()
     }
+
+    fun getItems(): List<FileInfo> = items.toList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val v = LayoutInflater.from(parent.context).inflate(R.layout.item_file, parent, false)
