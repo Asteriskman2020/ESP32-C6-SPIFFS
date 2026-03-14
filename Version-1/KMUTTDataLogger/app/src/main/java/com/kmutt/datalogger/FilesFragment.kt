@@ -38,9 +38,15 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
     private lateinit var rvRecords:     RecyclerView
 
     // Upload card
-    private lateinit var btnUpload:        Button
+    private lateinit var btnUploadAll:       Button
+    private lateinit var btnUpload:          Button
     private lateinit var cbClearAfterUpload: CheckBox
-    private lateinit var tvUploadStatus:   TextView
+    private lateinit var tvUploadStatus:     TextView
+
+    // Upload-all queue (reuses downloadQueue / downloadQueueIndex)
+    private var isUploadingAll   = false
+    private var uploadAllTotal   = 0
+    private var uploadAllErrors  = 0
 
     private lateinit var fileAdapter:   FileAdapter
     private lateinit var recordAdapter: RecordAdapter
@@ -73,9 +79,10 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
         rvFiles         = view.findViewById(R.id.rvFiles)
         tvRecordCount   = view.findViewById(R.id.tvRecordCount)
         rvRecords       = view.findViewById(R.id.rvRecords)
-        btnUpload       = view.findViewById(R.id.btnUpload)
+        btnUploadAll       = view.findViewById(R.id.btnUploadAll)
+        btnUpload          = view.findViewById(R.id.btnUpload)
         cbClearAfterUpload = view.findViewById(R.id.cbClearAfterUpload)
-        tvUploadStatus  = view.findViewById(R.id.tvUploadStatus)
+        tvUploadStatus     = view.findViewById(R.id.tvUploadStatus)
 
         fileAdapter = FileAdapter(
             onDownload = { fi -> downloadFile(fi) },
@@ -108,11 +115,15 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
         btnDownloadAll.setOnClickListener {
             downloadAllFiles()
         }
+        btnUploadAll.setOnClickListener {
+            uploadAllFiles()
+        }
         btnUpload.setOnClickListener {
             uploadCurrentData()
         }
 
         btnUpload.isEnabled = false
+        btnUploadAll.isEnabled = false
         btnDownloadAll.isEnabled = false
         updateConnectionUi(false, "", "Not connected")
     }
@@ -159,6 +170,60 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
         } catch (e: Exception) {
             showToast("Save failed: ${e.message}")
         }
+    }
+
+    private fun uploadAllFiles() {
+        val files = fileAdapter.getItems()
+        if (files.isEmpty()) { showToast("No files to upload"); return }
+        if (!isConnected) { showToast("Not connected"); return }
+        if (databaseManager.getBucket().isEmpty()) {
+            showToast("No bucket configured — go to Settings")
+            return
+        }
+        downloadQueue.clear()
+        downloadQueue.addAll(files.map { it.name })
+        downloadQueueIndex = 0
+        uploadAllTotal  = 0
+        uploadAllErrors = 0
+        isUploadingAll  = true
+        btnUploadAll.isEnabled = false
+        tvUploadStatus.text = "Starting upload of ${files.size} file(s)..."
+        uploadNextInQueue()
+    }
+
+    private fun uploadNextInQueue() {
+        if (downloadQueueIndex >= downloadQueue.size) {
+            isUploadingAll = false
+            btnUploadAll.isEnabled = true
+            val msg = "Upload complete: $uploadAllTotal records" +
+                      if (uploadAllErrors > 0) " ($uploadAllErrors error(s))" else ""
+            tvUploadStatus.text = msg
+            showToast(msg)
+            return
+        }
+        val filename = downloadQueue[downloadQueueIndex]
+        tvUploadStatus.text = "Fetching ${downloadQueueIndex + 1}/${downloadQueue.size}: $filename"
+        currentFilename   = filename
+        currentCsvContent = ""
+        bleManager.requestFile(filename)
+    }
+
+    private fun uploadFileToDb(filename: String, content: String) {
+        tvUploadStatus.text = "Uploading ${downloadQueueIndex + 1}/${downloadQueue.size}: $filename"
+        databaseManager.uploadCsv(filename, content, object : DatabaseManager.UploadCallback {
+            override fun onSuccess(count: Int) {
+                uploadAllTotal += count
+                if (cbClearAfterUpload.isChecked) bleManager.clearFile(filename)
+                downloadQueueIndex++
+                uploadNextInQueue()
+            }
+            override fun onError(msg: String) {
+                uploadAllErrors++
+                tvUploadStatus.text = "Error on $filename: $msg"
+                downloadQueueIndex++
+                uploadNextInQueue()
+            }
+        })
     }
 
     private fun uploadCurrentData() {
@@ -242,7 +307,10 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
         tvDeviceName.text = if (connected) name else ""
         tvStatusText.text = status
         btnDisconnect.isEnabled = connected
-        if (!connected) btnDownloadAll.isEnabled = false
+        if (!connected) {
+            btnDownloadAll.isEnabled = false
+            btnUploadAll.isEnabled   = false
+        }
     }
 
     // ── BleCallback ─────────────────────────────────────────────────────────
@@ -272,6 +340,7 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
         requireActivity().runOnUiThread {
             fileAdapter.submitList(files)
             btnDownloadAll.isEnabled = files.isNotEmpty()
+            btnUploadAll.isEnabled   = files.isNotEmpty()
             showToast("Found ${files.size} file(s)")
         }
     }
@@ -284,12 +353,16 @@ class FilesFragment : Fragment(), BleManager.BleCallback {
             recordAdapter.submitList(records)
             tvRecordCount.text = "Records: ${records.size}"
             btnUpload.isEnabled = records.isNotEmpty()
-            if (isDownloadingAll) {
-                saveFileToPhone(filename, csvContent)
-                downloadQueueIndex++
-                downloadNextInQueue()
-            } else {
-                showToast("Loaded ${records.size} records from $filename")
+            when {
+                isDownloadingAll -> {
+                    saveFileToPhone(filename, csvContent)
+                    downloadQueueIndex++
+                    downloadNextInQueue()
+                }
+                isUploadingAll -> {
+                    uploadFileToDb(filename, csvContent)
+                }
+                else -> showToast("Loaded ${records.size} records from $filename")
             }
         }
     }
