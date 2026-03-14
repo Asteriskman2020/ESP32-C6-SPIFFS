@@ -26,11 +26,32 @@ jobs:
         working-directory: Version-2/KMUTTWeatherLogger
         run: chmod +x gradlew && ./gradlew assembleDebug
 
-      - name: Create Release
+      - name: Copy APK to repo root
+        run: |
+          cp Version-2/KMUTTWeatherLogger/app/build/outputs/apk/debug/app-debug.apk Version-2/KMUTTWeatherLogger.apk
+
+      - name: Commit updated APK
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Version-2/KMUTTWeatherLogger.apk
+          git diff --cached --quiet || git commit -m "Auto-update KMUTTWeatherLogger.apk [skip ci]"
+          git push
+
+      - name: Create or update release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: kmutt-v1.0-${{ github.sha }}
-          name: KMUTT Weather Logger v1.0-${{ github.sha }}
+          tag_name: kmutt-latest
+          name: KMUTT Weather Logger (Latest)
+          body: |
+            Latest build of KMUTT Weather Data Logger APK.
+
+            **Install instructions:**
+            1. On your Android phone, open Settings → Security (or Apps) → Install unknown apps
+            2. Allow the browser or file manager you're using to install apps
+            3. Download and open this APK file
           files: Version-2/KMUTTWeatherLogger/app/build/outputs/apk/debug/app-debug.apk
+          make_latest: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
