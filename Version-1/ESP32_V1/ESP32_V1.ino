@@ -73,6 +73,13 @@ unsigned long ledFlashMs    = 0;
 bool          ledState      = false;
 bool          recordingDone = false;   // true after all 5 files saved
 
+// BLE heartbeat flash: 3× quick green every 5 s while connected
+#define BLE_FLASH_STEP_MS   80     // ms per on/off phase (6 phases = 480 ms total)
+#define BLE_FLASH_INTERVAL  5000   // ms between sequences
+unsigned long bleFlashNextMs = 0;  // when to trigger next sequence
+int           bleFlashPhase  = -1; // -1 = idle; 0-5 = running
+unsigned long bleFlashStepMs = 0;
+
 // ─── BLE command queue ───────────────────────────────────────────────────────
 String pendingBleCmd = "";
 
@@ -282,8 +289,40 @@ int countRecordsInFile(const String& filename) {
 void updateLed() {
     if (!fsReady) { ledOff(); return; }
 
-    int fileCount = (int)listCsvFiles().size();
     unsigned long now = millis();
+
+    // ── BLE heartbeat: 3× quick green flash every 5 s when connected ──────
+    if (bleConnected) {
+        // Start a new sequence when the interval has elapsed
+        if (bleFlashPhase < 0 && now >= bleFlashNextMs) {
+            bleFlashPhase  = 0;
+            bleFlashStepMs = now;
+            setPixelColor(0, 255, 0);   // phase 0 = GREEN on
+            return;
+        }
+        // Advance through phases 0-5
+        if (bleFlashPhase >= 0) {
+            if (now - bleFlashStepMs >= BLE_FLASH_STEP_MS) {
+                bleFlashStepMs = now;
+                bleFlashPhase++;
+                if (bleFlashPhase >= 6) {
+                    // Sequence done — schedule next in 5 s
+                    bleFlashPhase  = -1;
+                    bleFlashNextMs = now + BLE_FLASH_INTERVAL;
+                    // Fall through to normal LED logic below
+                } else {
+                    if (bleFlashPhase % 2 == 0) setPixelColor(0, 255, 0); // ON
+                    else                        ledOff();                  // OFF
+                    return;
+                }
+            } else {
+                return;  // Hold current phase until step time elapses
+            }
+        }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
+    int fileCount = (int)listCsvFiles().size();
 
     if (recordingDone || fileCount >= MAX_FILES) {
         // Slow RED → GREEN → PURPLE cycle, 600 ms per colour
@@ -321,7 +360,9 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         Serial.println("BLE connected");
     }
     void onDisconnect(NimBLEServer* pSvr, NimBLEConnInfo& connInfo, int reason) override {
-        bleConnected = false;
+        bleConnected    = false;
+        bleFlashPhase   = -1;   // cancel any in-progress flash
+        bleFlashNextMs  = 0;
         Serial.println("BLE disconnected");
         pSvr->startAdvertising();
     }
