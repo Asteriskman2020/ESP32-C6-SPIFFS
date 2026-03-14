@@ -235,14 +235,21 @@ class BleManager(private val context: Context) {
             if (!hasConnectPermission()) return
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
-                    callback?.onLog("GATT connected, discovering services...")
-                    gatt.discoverServices()
+                    // Request large MTU first so 200-byte ESP32 chunks are received intact.
+                    // discoverServices() is called in onMtuChanged after negotiation completes.
+                    callback?.onLog("GATT connected, requesting MTU 512...")
+                    gatt.requestMtu(512)
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     callback?.onLog("GATT disconnected (status=$status)")
                     mainHandler.post { callback?.onDisconnected() }
                 }
             }
+        }
+
+        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+            callback?.onLog("MTU changed to $mtu (status=$status), discovering services...")
+            gatt.discoverServices()
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
