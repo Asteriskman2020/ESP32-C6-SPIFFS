@@ -1,11 +1,13 @@
 /*
- * ESP32_V1.ino  v1.1
+ * ESP32_V1.ino  v1.2
  * ESP32-C6 Super Mini - AHT20 + BMP280 sensors, WS2812B LED, SPIFFS CSV logging
  * BLE, WiFi, WebServer, OTA, NTP, NVS
  *
  * v1.0 - Initial release
  * v1.1 - Save 5 files then stop (no rollover); LED: rapid RED=empty,
  *         rapid PURPLE=recording, slow RED-GREEN-PURPLE=done
+ * v1.2 - 144 records/file (1 per 10 min = 24h/file), 31 files max
+ *         Custom partition table: SPIFFS 576KB, OTA 1.6875MB x2
  */
 
 #include <Wire.h>
@@ -27,8 +29,8 @@
 #define NUM_PIXELS    1
 
 // ─── SPIFFS / CSV ────────────────────────────────────────────────────────────
-#define MAX_RECORDS_PER_FILE  20
-#define MAX_FILES             5
+#define MAX_RECORDS_PER_FILE  144   // 1 record/10 min = 24 h per file
+#define MAX_FILES             31    // ~1 month of daily files
 #define CSV_HEADER            "index,timestamp,date_time,temp_aht,humidity,pressure,temp_bmp\n"
 
 // ─── BLE UUIDs ──────────────────────────────────────────────────────────────
