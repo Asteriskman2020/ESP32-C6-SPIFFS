@@ -264,11 +264,16 @@ class BleManager(private val context: Context) {
             fileChar?.let { enableNotify(it) }
             statChar?.let { enableNotify(it) }
 
+            // Fire onConnected AFTER both notify setup ops complete so FILE_UUID
+            // notifications are active before FilesFragment calls requestFileList()
             val devName = try {
                 if (hasConnectPermission()) gatt.device.name ?: gatt.device.address
                 else gatt.device.address
             } catch (_: Exception) { "Unknown" }
-            mainHandler.post { callback?.onConnected(devName) }
+            enqueueOp(Runnable {
+                mainHandler.post { callback?.onConnected(devName) }
+                operationComplete()
+            })
         }
 
         override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
@@ -279,7 +284,8 @@ class BleManager(private val context: Context) {
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-            operationComplete()
+            // CMD uses WRITE_NO_RESPONSE — operationComplete() already called in sendCommand Runnable
+            if (characteristic.uuid != CMD_UUID) operationComplete()
         }
 
         @Suppress("DEPRECATION")
