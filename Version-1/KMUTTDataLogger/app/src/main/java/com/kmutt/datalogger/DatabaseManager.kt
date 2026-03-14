@@ -3,7 +3,6 @@ package com.kmutt.datalogger
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Base64
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -31,36 +30,59 @@ class DatabaseManager(private val context: Context) {
     private fun getPrefs() = context.getSharedPreferences("db_prefs", Context.MODE_PRIVATE)
 
     fun getServerAddress(): String = getPrefs().getString("db_address", "") ?: ""
-    fun getServerPort(): String    = getPrefs().getString("db_port", "3000") ?: "3000"
-    fun getUser(): String          = getPrefs().getString("db_user", "") ?: ""
-    fun getPass(): String          = getPrefs().getString("db_pass", "") ?: ""
+    fun getServerPort(): String    = getPrefs().getString("db_port", "8086") ?: "8086"
+    fun getOrg(): String           = getPrefs().getString("db_user", "") ?: ""
+    fun getToken(): String         = getPrefs().getString("db_pass", "") ?: ""
+    fun getBucket(): String        = getPrefs().getString("db_bucket", "") ?: ""
 
-    private fun buildBaseAuth(): String {
-        val credentials = "${getUser()}:${getPass()}"
-        return "Basic " + Base64.encodeToString(credentials.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
+    // Convert parsed CSV records to InfluxDB line protocol
+    // Format: measurement field1=val,field2=val,... unix_timestamp_seconds
+    private fun csvToLineProtocol(csvContent: String): Pair<String, Int> {
+        val sb = StringBuilder()
+        var count = 0
+        val lines = csvContent.lines()
+        for (i in lines.indices) {
+            val line = lines[i].trim()
+            if (i == 0 || line.isEmpty()) continue  // skip header
+            val rec = SensorRecord.fromCsvLine(line) ?: continue
+            sb.append("weather ")
+            sb.append("temp_aht=").append(rec.tempAht).append(",")
+            sb.append("humidity=").append(rec.humidity).append(",")
+            sb.append("pressure=").append(rec.pressure).append(",")
+            sb.append("temp_bmp=").append(rec.tempBmp)
+            sb.append(" ").append(rec.timestamp).append("\n")
+            count++
+        }
+        return Pair(sb.toString(), count)
     }
 
     fun uploadCsv(filename: String, csvContent: String, callback: UploadCallback) {
-        val addr = getServerAddress()
-        val port = getServerPort()
+        val addr   = getServerAddress()
+        val port   = getServerPort()
+        val org    = getOrg()
+        val bucket = getBucket()
+        val token  = getToken()
+
         if (addr.isEmpty()) {
-            mainHandler.post { callback.onError("No server configured") }
+            mainHandler.post { callback.onError("No server address configured") }
+            return
+        }
+        if (bucket.isEmpty()) {
+            mainHandler.post { callback.onError("No bucket configured") }
             return
         }
 
-        val url = "http://$addr:$port/api/upload"
-        val body = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart(
-                "file",
-                filename,
-                csvContent.toRequestBody("text/csv".toMediaTypeOrNull())
-            )
-            .build()
+        val (lineProtocol, count) = csvToLineProtocol(csvContent)
+        if (lineProtocol.isEmpty()) {
+            mainHandler.post { callback.onError("No valid records to upload") }
+            return
+        }
 
+        val url = "http://$addr:$port/api/v2/write?org=$org&bucket=$bucket&precision=s"
+        val body = lineProtocol.toRequestBody("text/plain; charset=utf-8".toMediaTypeOrNull())
         val request = Request.Builder()
             .url(url)
-            .header("Authorization", buildBaseAuth())
+            .header("Authorization", "Token $token")
             .post(body)
             .build()
 
@@ -73,28 +95,28 @@ class DatabaseManager(private val context: Context) {
                 val bodyStr = response.body?.string() ?: ""
                 response.close()
                 if (code in 200..299) {
-                    // Count records in CSV (lines - 1 for header)
-                    val count = csvContent.lines().count { it.isNotBlank() } - 1
-                    mainHandler.post { callback.onSuccess(count.coerceAtLeast(0)) }
+                    mainHandler.post { callback.onSuccess(count) }
                 } else {
-                    mainHandler.post { callback.onError("Server error $code: $bodyStr") }
+                    mainHandler.post { callback.onError("InfluxDB error $code: $bodyStr") }
                 }
             }
         })
     }
 
     fun testConnection(callback: TestCallback) {
-        val addr = getServerAddress()
-        val port = getServerPort()
+        val addr  = getServerAddress()
+        val port  = getServerPort()
+        val token = getToken()
+
         if (addr.isEmpty()) {
-            mainHandler.post { callback.onError("No server configured") }
+            mainHandler.post { callback.onError("No server address configured") }
             return
         }
 
-        val url = "http://$addr:$port/api/status"
+        val url = "http://$addr:$port/health"
         val request = Request.Builder()
             .url(url)
-            .header("Authorization", buildBaseAuth())
+            .header("Authorization", "Token $token")
             .get()
             .build()
 
@@ -103,12 +125,15 @@ class DatabaseManager(private val context: Context) {
                 mainHandler.post { callback.onError("Connection failed: ${e.message}") }
             }
             override fun onResponse(call: Call, response: Response) {
-                val code = response.code
+                val code    = response.code
+                val bodyStr = response.body?.string() ?: ""
                 response.close()
-                if (code in 200..299) {
+                if (code in 200..299 && bodyStr.contains("\"pass\"")) {
+                    mainHandler.post { callback.onSuccess() }
+                } else if (code in 200..299) {
                     mainHandler.post { callback.onSuccess() }
                 } else {
-                    mainHandler.post { callback.onError("Server returned $code") }
+                    mainHandler.post { callback.onError("InfluxDB returned $code") }
                 }
             }
         })

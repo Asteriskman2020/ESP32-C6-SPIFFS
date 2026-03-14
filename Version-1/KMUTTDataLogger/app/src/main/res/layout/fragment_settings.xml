@@ -35,7 +35,7 @@
                     android:paddingEnd="14dp"
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp"
-                    android:text="DATABASE SETTINGS"
+                    android:text="INFLUXDB SETTINGS"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold"
                     android:textSize="13sp"/>
@@ -67,7 +67,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:hint="Port (default: 3000)"
+                        android:hint="Port (default: 8086)"
                         app:boxStrokeColor="#039BE5">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -83,7 +83,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:hint="Username"
+                        android:hint="Organization"
                         app:boxStrokeColor="#039BE5">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -97,9 +97,9 @@
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="12dp"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:hint="Password"
+                        android:hint="API Token"
                         app:boxStrokeColor="#039BE5"
                         app:endIconMode="password_toggle">
 
@@ -108,6 +108,22 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPassword"
+                            android:textSize="14sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:hint="Bucket (Database)"
+                        app:boxStrokeColor="#039BE5">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDbBucket"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
                             android:textSize="14sp"/>
                     </com.google.android.material.textfield.TextInputLayout>
 

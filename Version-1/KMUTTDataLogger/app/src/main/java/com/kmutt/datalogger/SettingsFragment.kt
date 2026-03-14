@@ -13,12 +13,13 @@ import com.google.android.material.textfield.TextInputEditText
 
 class SettingsFragment : Fragment() {
 
-    private lateinit var etDbAddress: TextInputEditText
-    private lateinit var etDbPort:    TextInputEditText
-    private lateinit var etDbUser:    TextInputEditText
-    private lateinit var etDbPass:    TextInputEditText
-    private lateinit var btnTest:     Button
-    private lateinit var btnSave:     Button
+    private lateinit var etDbAddress:  TextInputEditText
+    private lateinit var etDbPort:     TextInputEditText
+    private lateinit var etDbUser:     TextInputEditText  // Organization
+    private lateinit var etDbPass:     TextInputEditText  // API Token
+    private lateinit var etDbBucket:   TextInputEditText  // Bucket
+    private lateinit var btnTest:      Button
+    private lateinit var btnSave:      Button
     private lateinit var tvConnStatus: TextView
 
     private lateinit var databaseManager: DatabaseManager
@@ -36,6 +37,7 @@ class SettingsFragment : Fragment() {
         etDbPort     = view.findViewById(R.id.etDbPort)
         etDbUser     = view.findViewById(R.id.etDbUser)
         etDbPass     = view.findViewById(R.id.etDbPass)
+        etDbBucket   = view.findViewById(R.id.etDbBucket)
         btnTest      = view.findViewById(R.id.btnTestConnection)
         btnSave      = view.findViewById(R.id.btnSaveSettings)
         tvConnStatus = view.findViewById(R.id.tvConnStatus)
@@ -54,18 +56,20 @@ class SettingsFragment : Fragment() {
     private fun loadSettings() {
         val prefs = requireContext().getSharedPreferences("db_prefs", Context.MODE_PRIVATE)
         etDbAddress.setText(prefs.getString("db_address", ""))
-        etDbPort.setText(prefs.getString("db_port", "3000"))
+        etDbPort.setText(prefs.getString("db_port", "8086"))
         etDbUser.setText(prefs.getString("db_user", ""))
         etDbPass.setText(prefs.getString("db_pass", ""))
+        etDbBucket.setText(prefs.getString("db_bucket", ""))
     }
 
     private fun saveSettings() {
         val prefs = requireContext().getSharedPreferences("db_prefs", Context.MODE_PRIVATE)
         prefs.edit().apply {
             putString("db_address", etDbAddress.text.toString().trim())
-            putString("db_port",    etDbPort.text.toString().trim().ifEmpty { "3000" })
+            putString("db_port",    etDbPort.text.toString().trim().ifEmpty { "8086" })
             putString("db_user",    etDbUser.text.toString().trim())
             putString("db_pass",    etDbPass.text.toString())
+            putString("db_bucket",  etDbBucket.text.toString().trim())
             apply()
         }
         Toast.makeText(requireContext(), "Settings saved", Toast.LENGTH_SHORT).show()
