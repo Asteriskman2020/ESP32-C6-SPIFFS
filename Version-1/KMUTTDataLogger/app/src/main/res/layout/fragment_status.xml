@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E1F5FE"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- BLE STATUS CARD -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#039BE5"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:text="BLE STATUS"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textSize="13sp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Connection"
+                        android:textSize="13sp" android:textColor="#555555"/>
+                    <TextView
+                        android:id="@+id/tvBleStatusValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Disconnected"
+                        android:textSize="13sp"
+                        android:textColor="#E53935"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- DEVICE INFO CARD -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#039BE5"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:text="DEVICE INFO"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textSize="13sp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="NTP Status" android:textSize="13sp" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tvNtpStatusValue"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="-" android:textSize="13sp" android:textColor="#757575"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="4dp" android:paddingBottom="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Current File" android:textSize="13sp" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tvCurFileValue"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="-" android:textSize="13sp" android:textColor="#333333"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="4dp" android:paddingBottom="12dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Records in File" android:textSize="13sp" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tvRecordsValue"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="-" android:textSize="13sp" android:textColor="#333333"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- STORAGE SLOTS CARD -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#039BE5"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:text="STORAGE SLOTS"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textSize="13sp"/>
+
+                <!-- Slot 1 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="32dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="14dp" android:paddingEnd="14dp">
+                    <TextView android:id="@+id/tvSlotIcon1" android:layout_width="20dp" android:layout_height="wrap_content" android:text="○" android:textColor="#9E9E9E" android:textSize="16sp"/>
+                    <TextView android:id="@+id/tvSlotName1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Slot 1" android:textSize="13sp" android:textColor="#333333" android:layout_marginStart="8dp"/>
+                    <TextView android:id="@+id/tvSlotCount1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Empty" android:textSize="12sp" android:textColor="#757575"/>
+                </LinearLayout>
+                <!-- Slot 2 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="32dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="14dp" android:paddingEnd="14dp">
+                    <TextView android:id="@+id/tvSlotIcon2" android:layout_width="20dp" android:layout_height="wrap_content" android:text="○" android:textColor="#9E9E9E" android:textSize="16sp"/>
+                    <TextView android:id="@+id/tvSlotName2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Slot 2" android:textSize="13sp" android:textColor="#333333" android:layout_marginStart="8dp"/>
+                    <TextView android:id="@+id/tvSlotCount2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Empty" android:textSize="12sp" android:textColor="#757575"/>
+                </LinearLayout>
+                <!-- Slot 3 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="32dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="14dp" android:paddingEnd="14dp">
+                    <TextView android:id="@+id/tvSlotIcon3" android:layout_width="20dp" android:layout_height="wrap_content" android:text="○" android:textColor="#9E9E9E" android:textSize="16sp"/>
+                    <TextView android:id="@+id/tvSlotName3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Slot 3" android:textSize="13sp" android:textColor="#333333" android:layout_marginStart="8dp"/>
+                    <TextView android:id="@+id/tvSlotCount3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Empty" android:textSize="12sp" android:textColor="#757575"/>
+                </LinearLayout>
+                <!-- Slot 4 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="32dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="14dp" android:paddingEnd="14dp">
+                    <TextView android:id="@+id/tvSlotIcon4" android:layout_width="20dp" android:layout_height="wrap_content" android:text="○" android:textColor="#9E9E9E" android:textSize="16sp"/>
+                    <TextView android:id="@+id/tvSlotName4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Slot 4" android:textSize="13sp" android:textColor="#333333" android:layout_marginStart="8dp"/>
+                    <TextView android:id="@+id/tvSlotCount4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Empty" android:textSize="12sp" android:textColor="#757575"/>
+                </LinearLayout>
+                <!-- Slot 5 -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="32dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="14dp" android:paddingEnd="14dp" android:layout_marginBottom="12dp">
+                    <TextView android:id="@+id/tvSlotIcon5" android:layout_width="20dp" android:layout_height="wrap_content" android:text="○" android:textColor="#9E9E9E" android:textSize="16sp"/>
+                    <TextView android:id="@+id/tvSlotName5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Slot 5" android:textSize="13sp" android:textColor="#333333" android:layout_marginStart="8dp"/>
+                    <TextView android:id="@+id/tvSlotCount5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Empty" android:textSize="12sp" android:textColor="#757575"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- DATABASE CARD -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#039BE5"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:text="DATABASE STATUS"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textSize="13sp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="4dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Server" android:textSize="13sp" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tvDbServer"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1.5" android:text="Not configured" android:textSize="13sp" android:textColor="#757575"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="4dp" android:paddingBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Status" android:textSize="13sp" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tvDbStatusValue"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1.5" android:text="Not configured" android:textSize="13sp" android:textColor="#9E9E9E"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnTestDbConn"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="TEST CONNECTION"
+                    android:textSize="12sp"
+                    app:strokeColor="#039BE5"
+                    android:textColor="#039BE5"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
