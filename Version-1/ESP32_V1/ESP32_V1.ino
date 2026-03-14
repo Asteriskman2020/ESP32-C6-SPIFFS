@@ -1,7 +1,11 @@
 /*
- * ESP32_V1.ino
+ * ESP32_V1.ino  v1.1
  * ESP32-C6 Super Mini - AHT20 + BMP280 sensors, WS2812B LED, SPIFFS CSV logging
  * BLE, WiFi, WebServer, OTA, NTP, NVS
+ *
+ * v1.0 - Initial release
+ * v1.1 - Save 5 files then stop (no rollover); LED: rapid RED=empty,
+ *         rapid PURPLE=recording, slow RED-GREEN-PURPLE=done
  */
 
 #include <Wire.h>
